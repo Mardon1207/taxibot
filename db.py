@@ -6,15 +6,6 @@ class DB:
         self.db = TinyDB(path,indent=4)
         
     def save(self,chat_id,ism,qayer):
-        """
-        add card
-
-        data = {
-            'brand':brand,
-            'doc_id': doc_id,
-            chat_id: chat_id
-            }
-        """
         user=Document(
             {"ism":ism,
              "qayer":qayer},doc_id=chat_id)
