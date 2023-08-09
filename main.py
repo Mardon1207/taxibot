@@ -36,10 +36,10 @@ def taxi(update:Update,context:CallbackContext):
 def elonqosh(update:Update,context:CallbackContext):
     query=update.callback_query
     chat_id=query.message.chat.id
-    try:
+    if db.izla(chat_id=chat_id)!=None:
         text="Iltimos ismingiz va familyangizni to'liq yozing!"
         query.edit_message_text(text=text)
-    except:
+    else:
         text="Sizni e'loningiz mavjud!"
         query.answer("Sizni e'loningiz mavjud!")
 
@@ -60,12 +60,12 @@ def addism(update:Update,context:CallbackContext):
     chat_id=update.message.chat.id
     ism=update.message.text
     olsa=InlineKeyboardButton(text="Oltinsoydan Samarqandga",callback_data=f"Oltinsoy,Samarqand,{chat_id},{ism},{user},{phone}")
-    olnu=InlineKeyboardButton(text="Oltinsoydan Nurobodga",callback_data=f"oltinnur,{chat_id},{ism}")
-    olju=InlineKeyboardButton(text="Oltinsoyan Jumaga",callback_data=f"oltinjum,{chat_id},{ism}")
-    olto=InlineKeyboardButton(text="Oltinsoyan Toshkentga",callback_data=f"oltintosh,{chat_id},{ism}")
-    nusa=InlineKeyboardButton(text="Nuroboddan Samarqandga",callback_data=f"nursam,{chat_id},{ism}")
-    nuju=InlineKeyboardButton(text="Nuroboddan Jumaga",callback_data=f"nurjum,{chat_id},{ism}")
-    nuto=InlineKeyboardButton(text="Nuroboddan Toshkentga",callback_data=f"nurtosh,{chat_id},{ism}")
+    olnu=InlineKeyboardButton(text="Oltinsoydan Nurobodga",callback_data=f"Oltinsoy,Nurobod,{chat_id},{ism},{user},{phone}")
+    olju=InlineKeyboardButton(text="Oltinsoyan Jumaga",callback_data=f"Oltinsoy,Juma,{chat_id},{ism},{user},{phone}")
+    olto=InlineKeyboardButton(text="Oltinsoyan Toshkentga",callback_data=f"Oltinsoy,Toshkent,{chat_id},{ism},{user},{phone}")
+    nusa=InlineKeyboardButton(text="Nuroboddan Samarqandga",callback_data=f"Nurobod,Samarqand,{chat_id},{ism},{user},{phone}")
+    nuju=InlineKeyboardButton(text="Nuroboddan Jumaga",callback_data=f"Nurobod,Juma,{chat_id},{ism},{user},{phone}")
+    nuto=InlineKeyboardButton(text="Nuroboddan Toshkentga",callback_data=f"Nurobod,Toshkent,{chat_id},{ism},{user},{phone}")
     boshqa=InlineKeyboardButton(text="Boshqa",callback_data="boshqa1")
     keyboard=InlineKeyboardMarkup([[olnu],[olsa],[olju],[olto],[nusa],[nuju],[nuto],[boshqa]],resize_keyboard=True)
     text="Qanday yunalishda qatnaysiz"
@@ -74,10 +74,12 @@ def addism(update:Update,context:CallbackContext):
 def qoshish(update:Update,context:CallbackContext):
     query=update.callback_query
     data=query.data
-    chat_id=data.split(",")[1]
-    ism=data.split(',')[2]
-    qayer=data.split(',')[0]
-    db.save(chat_id=chat_id,ism=ism,qayer=qayer)
+    chat_id=data.split(",")[2]
+    ism=data.split(',')[3]
+    qayer=data.split(',')[:2]
+    user=data.split(',')[4]
+    phone=data.split(",")[5]
+    db.save(chat_id=chat_id,ism=ism,phone=phone,user=user,qayer=qayer)
     text="Ma'lumotlar saqlani"
     ortga=InlineKeyboardButton(text="Ortga",callback_data="ortga2")
     keyboard=InlineKeyboardMarkup([[ortga]
@@ -89,6 +91,6 @@ dp.add_handler(CallbackQueryHandler(taxi,pattern="taksi"))
 dp.add_handler(CallbackQueryHandler(elonqosh,pattern="elonqoshish"))
 dp.add_handler(MessageHandler(Filters.text,contact))
 dp.add_handler(MessageHandler(Filters.contact,addism))
-dp.add_handler(CallbackQueryHandler(qoshish,pattern="oltinsam"))
+dp.add_handler(CallbackQueryHandler(qoshish,pattern="Oltinsoy"))
 updater.start_polling()
 updater.idle()

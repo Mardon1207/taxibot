@@ -1,8 +1,13 @@
 {
     "_default": {
         "1336583023": {
-            "ism": "Mardon Sultonov",
-            "qayer": "oltinsam"
+            "ism": "None",
+            "phone": "+998886139900",
+            "user": "S_M_M_1207",
+            "qayer": [
+                "Oltinsoy",
+                "Nurobod"
+            ]
         }
     }
 }
