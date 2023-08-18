@@ -1,13 +1,15 @@
 {
-    "_default": {
-        "1336583023": {
-            "ism": "None",
+    "taxi": {
+        "1": {
+            "chat_id": 1336583023,
+            "ism": "S_M_M_1207",
             "phone": "+998886139900",
-            "user": "S_M_M_1207",
+            "havola": "https://t.me/S_M_M_1207",
             "qayer": [
-                "Oltinsoy",
-                "Nurobod"
-            ]
+                "Oltinsoydan",
+                "Nurobodga"
+            ],
+            "rasm": "AgACAgIAAxkBAAICSWTeHPz8KR3fh3DdEd7L747IWw7FAAJ4yTEbfhqRSkmiq7e7iEywAQADAgADeQADMAQ"
         }
     }
 }
