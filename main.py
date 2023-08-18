@@ -7,6 +7,10 @@ havola="https://t.me/"
 TOKEN="5850794189:AAFnFdgE9wJ70__uodPKrR6yaIcv_anIu60"
 from db import DB
 db=DB("data.json")
+from contact import DB
+contactdb=DB("contact.json")
+from rasm import DB
+rasmdb=DB("rasm.json")
 updater=Updater(TOKEN)
 dp=updater.dispatcher
 
@@ -26,71 +30,377 @@ def taxi(update:Update,context:CallbackContext):
     query=update.callback_query
     text="Siz Taxi bo'limidasiz. Bu yerda siz yangi e'lon qo'shishingiz, e'loningizni taxrirlashingiz va e'loningizni o'chirishingiz mumkun."
     elonq=InlineKeyboardButton(text="E'lon qo'shish",callback_data="elonqoshish")
-    elont=InlineKeyboardButton(text="E'lonni tahrirlash",callback_data="elontahrir")
     elono=InlineKeyboardButton(text="E'lonni o'chirish",callback_data="elonochirish")
     ortga=InlineKeyboardButton(text="Ortga",callback_data="ortga2")
-    keyboard=InlineKeyboardMarkup([[elonq,elont],[elono,ortga]
+    keyboard=InlineKeyboardMarkup([[elonq,elono],[ortga]
     ],resize_keyboard=True)
     query.edit_message_text(text=text,reply_markup=keyboard)
 
 def elonqosh(update:Update,context:CallbackContext):
     query=update.callback_query
     chat_id=query.message.chat.id
-    if db.izla(chat_id=chat_id)!=None:
-        text="Iltimos ismingiz va familyangizni to'liq yozing!"
-        query.edit_message_text(text=text)
+    bot=context.bot
+    if len(db.izla(chat_id=chat_id))==0:
+        query=update.callback_query
+        button = KeyboardButton("Telefon raqamni yuborish", request_contact=True)
+        keyboard = ReplyKeyboardMarkup([[button]],one_time_keyboard=True, resize_keyboard=True)
+        query.delete_message()
+        bot.send_message(chat_id, "Iltimos, telefon raqamingizni yuboring:", reply_markup=keyboard)
     else:
-        text="Sizni e'loningiz mavjud!"
         query.answer("Sizni e'loningiz mavjud!")
-
-def contact(update:Update,context:CallbackContext):
-    chat_id=update.message.chat.id
+    
+def rasm(update:Update,context:CallbackContext):
     bot=context.bot
     query=update.callback_query
-    button = KeyboardButton("Telefon raqamni yuborish", request_contact=True)
-    keyboard = ReplyKeyboardMarkup([[button]],one_time_keyboard=True, resize_keyboard=True)
-    bot.send_message(chat_id, "Iltimos, telefon raqamingizni yuboring:", reply_markup=keyboard)
+    chat_id=update.message.chat.id
+    contact=update.message.contact.phone_number
+    contactdb.save(contact=contact,chat_id=chat_id)
+    text="Avtomobilingizning rasmini yuboring"
+    bot.send_message(chat_id=chat_id,text=text)
 
 def addism(update:Update,context:CallbackContext):
-    query=update.callback_query
+    # query=update.callback_query
     bot=context.bot
-    phone=update.message.contact.phone_number
-    user=update.message.chat.username
-    print(user)
+    rasm=update.message.photo[-1]['file_id']
+    print(rasm)
     chat_id=update.message.chat.id
-    ism=update.message.text
-    olsa=InlineKeyboardButton(text="Oltinsoydan Samarqandga",callback_data=f"Oltinsoy,Samarqand,{chat_id},{ism},{user},{phone}")
-    olnu=InlineKeyboardButton(text="Oltinsoydan Nurobodga",callback_data=f"Oltinsoy,Nurobod,{chat_id},{ism},{user},{phone}")
-    olju=InlineKeyboardButton(text="Oltinsoyan Jumaga",callback_data=f"Oltinsoy,Juma,{chat_id},{ism},{user},{phone}")
-    olto=InlineKeyboardButton(text="Oltinsoyan Toshkentga",callback_data=f"Oltinsoy,Toshkent,{chat_id},{ism},{user},{phone}")
-    nusa=InlineKeyboardButton(text="Nuroboddan Samarqandga",callback_data=f"Nurobod,Samarqand,{chat_id},{ism},{user},{phone}")
-    nuju=InlineKeyboardButton(text="Nuroboddan Jumaga",callback_data=f"Nurobod,Juma,{chat_id},{ism},{user},{phone}")
-    nuto=InlineKeyboardButton(text="Nuroboddan Toshkentga",callback_data=f"Nurobod,Toshkent,{chat_id},{ism},{user},{phone}")
+    ism=update.message.chat.username
+    olsa=InlineKeyboardButton(text="Oltinsoydan Samarqandga",callback_data=f"qush,Oltinsoydan,Samarqanga")
+    olnu=InlineKeyboardButton(text="Oltinsoydan Nurobodga",callback_data=f"qush,Oltinsoydan,Nurobodga")
+    olju=InlineKeyboardButton(text="Oltinsoyan Jumaga",callback_data=f"qush,Oltinsoyan,Jumaga")
+    olto=InlineKeyboardButton(text="Oltinsoyan Toshkentga",callback_data=f"qush,Oltinsoyan,Toshkentga")
+    nusa=InlineKeyboardButton(text="Nuroboddan Samarqandga",callback_data=f"qush,Nuroboddan,Samarqandga")
+    nuju=InlineKeyboardButton(text="Nuroboddan Jumaga",callback_data=f"qush,Nuroboddan,Jumaga")
+    nuto=InlineKeyboardButton(text="Nuroboddan Toshkentga",callback_data=f"qush,Nuroboddan,Toshkentga")
     boshqa=InlineKeyboardButton(text="Boshqa",callback_data="boshqa1")
     keyboard=InlineKeyboardMarkup([[olnu],[olsa],[olju],[olto],[nusa],[nuju],[nuto],[boshqa]],resize_keyboard=True)
     text="Qanday yunalishda qatnaysiz"
-    bot.sendMessage(text=text,chat_id=chat_id,reply_markup=keyboard)
+    bot.send_message(str(chat_id),text,reply_markup=keyboard)
 
 def qoshish(update:Update,context:CallbackContext):
     query=update.callback_query
     data=query.data
-    chat_id=data.split(",")[2]
-    ism=data.split(',')[3]
-    qayer=data.split(',')[:2]
-    user=data.split(',')[4]
-    phone=data.split(",")[5]
-    db.save(chat_id=chat_id,ism=ism,phone=phone,user=user,qayer=qayer)
-    text="Ma'lumotlar saqlani"
+    user=query.message.chat.username
+    havola=f"https://t.me/{user}"
+    ism=query.message.chat.username
+    chat_id=query.message.chat.id
+    qayer=data.split(',')[1:]
+    phone=contactdb.izla(chat_id)[0]['contact']
+    rasm=rasmdb.izla(chat_id)[0]['rasm']
+    db.save(chat_id=chat_id,ism=ism,phone=phone,havola=havola,qayer=qayer,rasm=rasm)
+    rasmdb.remove(chat_id)
+    contactdb.remove(chat_id)
+    query.answer("Ma'lumotlar saqlandi")
+    text="Siz Taxi bo'limidasiz. Bu yerda siz yangi e'lon qo'shishingiz, e'loningizni taxrirlashingiz va e'loningizni o'chirishingiz mumkun."
+    elonq=InlineKeyboardButton(text="E'lon qo'shish",callback_data="elonqoshish")
+    elono=InlineKeyboardButton(text="E'lonni o'chirish",callback_data="elonochirish")
     ortga=InlineKeyboardButton(text="Ortga",callback_data="ortga2")
-    keyboard=InlineKeyboardMarkup([[ortga]
+    keyboard=InlineKeyboardMarkup([[elonq,elono],[ortga]
     ],resize_keyboard=True)
     query.edit_message_text(text=text,reply_markup=keyboard)
 
+def elonoch(update:Update,context:CallbackContext):
+    query=update.callback_query
+    chat_id=query.message.chat.id
+    if len(db.izla(chat_id=chat_id))!=0:
+        db.remove(chat_id)
+        query.answer("E'loningiz o'chirildi!")
+    else:
+        query.answer("E'lon mavjud emas!!!")
+
+def ortga2(update:Update,context:CallbackContext):
+    query=update.callback_query
+    chat_id=query.message.chat.id
+    taxi=InlineKeyboardButton(text="🚖 Taxi",callback_data="taksi")
+    yulovchi=InlineKeyboardButton(text="👤 Yulovchi",callback_data="yulovchi")
+    bot_haqida=InlineKeyboardButton(text="📑 Bot haqida",callback_data="bothaqida")
+    keyboard=InlineKeyboardMarkup([[
+        taxi,yulovchi],[bot_haqida]
+    ],resize_keyboard=True)
+    text="Assalomu alaykum botimizga xush kelibsiz! \nIltimos o'zingizga kerakli bo'limni tanlang."
+    query.edit_message_text(text=text,reply_markup=keyboard)
+
+def yulovchi(update:Update,context:CallbackContext):
+    query=update.callback_query
+    text="Siz Yulovchi bo'limidasiz. Bu yerda siz yangi e'lon qo'shishingiz, e'loningizni taxrirlashingiz va e'loningizni o'chirishingiz mumkun."
+    elonk=InlineKeyboardButton(text="E'lonlarni ko'rish",callback_data="elonkorish")
+    manzil=InlineKeyboardButton(text="Manzilni tanlash",callback_data="tanlash")
+    ortga=InlineKeyboardButton(text="Ortga",callback_data="ortga2")
+    keyboard=InlineKeyboardMarkup([[elonk,manzil],[ortga]
+    ],resize_keyboard=True)
+    query.edit_message_text(text=text,reply_markup=keyboard)
+
+def elonkor(update:Update,context:CallbackContext):
+    query=update.callback_query
+    m=0
+    lst=db.hamma()      
+    chat_id=query.message.chat.id
+    bot = context.bot
+    try:
+        ism=lst[m]['ism']
+        phone=lst[m]['phone']
+        havola=lst[m]['havola']
+        qayer=lst[m]["qayer"]
+        rasm=lst[m]['rasm']
+        k=[]
+        back=InlineKeyboardButton(text="⏪",callback_data=f"back,{m}")
+        nextn=InlineKeyboardButton(text="⏩",callback_data=f"nextn,{m}")
+        max=len(lst)
+        if m>0 and m<max-1:
+            k.append([back,nextn])
+        elif m==max-1 and max!=1:
+            k.append([back])
+        elif m==0 and max!=1:
+            k.append([nextn])
+        ortga2=InlineKeyboardButton(text="Ortga",callback_data="ortgayul")
+        lichka=InlineKeyboardButton(text="Bog'lansh",url=havola)
+        k.append([lichka])
+        k.append([ortga2])
+        keyboard=InlineKeyboardMarkup(k,resize_keyboard=True)
+        text=f'Ismi {ism}\nTelfon raqami:  {phone}\nManzili:  {qayer[0]} {qayer[1]}'
+        query.delete_message()
+        bot.sendPhoto(chat_id=chat_id,photo=rasm,caption=text,reply_markup=keyboard)
+    except:
+        query.answer("Bu yunalishga hechkim e'lon bermagan")
+
+def back(update:Update,context:CallbackContext):
+    query=update.callback_query
+    m=int(query.data.split(",")[1])
+    m=m-1
+    lst=db.hamma()      
+    chat_id=query.message.chat.id
+    bot = context.bot
+    try:
+        ism=lst[m]['ism']
+        phone=lst[m]['phone']
+        havola=lst[m]['havola']
+        qayer=lst[m]["qayer"]
+        rasm=lst[m]['rasm']
+        k=[]
+        back=InlineKeyboardButton(text="⏪",callback_data=f"back,{m}")
+        nextn=InlineKeyboardButton(text="⏩",callback_data=f"nextn,{m}")
+        max=len(lst)
+        if m>0 and m<max-1:
+            k.append([back,nextn])
+        elif m==max-1:
+            k.append([back])
+        elif m==0:
+            k.append([nextn])
+        ortga2=InlineKeyboardButton(text="Ortga",callback_data=f"ortgayul")
+        lichka=InlineKeyboardButton(text="Bog'lansh",url=havola)
+        k.append([lichka])
+        k.append([ortga2])
+        keyboard=InlineKeyboardMarkup(k,resize_keyboard=True)
+        text=f'Ismi {ism}\nTelfon raqami:  {phone}\nManzili:  {qayer}'
+        query.delete_message()
+        bot.sendPhoto(chat_id=chat_id,photo=rasm,caption=text,reply_markup=keyboard)
+    except:
+        query.answer("Bu yunalishga hechkim e'lon bermagan")
+
+def next(update:Update,context:CallbackContext):
+    query=update.callback_query
+    m=int(query.data.split(",")[1])
+    m=m+1
+    lst=db.hamma()      
+    chat_id=query.message.chat.id
+    bot = context.bot
+    try:
+        ism=lst[m]['ism']
+        phone=lst[m]['phone']
+        havola=lst[m]['havola']
+        qayer=lst[m]["qayer"]
+        rasm=lst[m]['rasm']
+        k=[]
+        back=InlineKeyboardButton(text="⏪",callback_data=f"back,{m}")
+        nextn=InlineKeyboardButton(text="⏩",callback_data=f"nextn,{m}")
+        max=len(lst)
+        if m>0 and m<max-1:
+            k.append([back,nextn])
+        elif m==max-1:
+            k.append([back])
+        elif m==0:
+            k.append([nextn])
+        ortga2=InlineKeyboardButton(text="Ortga",callback_data=f"ortgayul")
+        lichka=InlineKeyboardButton(text="Bog'lansh",url=havola)
+        k.append([lichka])
+        k.append([ortga2])
+        keyboard=InlineKeyboardMarkup(k,resize_keyboard=True)
+        text=f'Ismi {ism}\nTelfon raqami:  {phone}\nManzili:  {qayer}'
+        query.delete_message()
+        bot.sendPhoto(chat_id=chat_id,photo=rasm,caption=text,reply_markup=keyboard)
+    except:
+        query.answer("Bu yunalishga hechkim e'lon bermagan")
+
+def tanlash(update:Update,context:CallbackContext):
+    query=update.callback_query
+    olsa=InlineKeyboardButton(text="Oltinsoydan Samarqandga",callback_data=f"qwe,Oltinsoydan,Samarqanga")
+    olnu=InlineKeyboardButton(text="Oltinsoydan Nurobodga",callback_data=f"qwe,Oltinsoydan,Nurobodga")
+    olju=InlineKeyboardButton(text="Oltinsoyan Jumaga",callback_data=f"qwe,Oltinsoyan,Jumaga")
+    olto=InlineKeyboardButton(text="Oltinsoyan Toshkentga",callback_data=f"qwe,Oltinsoyan,Toshkentga")
+    nusa=InlineKeyboardButton(text="Nuroboddan Samarqandga",callback_data=f"qwe,Nuroboddan,Samarqandga")
+    nuju=InlineKeyboardButton(text="Nuroboddan Jumaga",callback_data=f"qwe,Nuroboddan,Jumaga")
+    nuto=InlineKeyboardButton(text="Nuroboddan Toshkentga",callback_data=f"qwe,Nuroboddan,Toshkentga")
+    boshqa=InlineKeyboardButton(text="Boshqa",callback_data="boshqa1")
+    ortga=InlineKeyboardButton(text="Ortga",callback_data="ortgayol")
+    keyboard=InlineKeyboardMarkup([[olnu],[olsa],[olju],[olto],[nusa],[nuju],[nuto],[boshqa],[ortga]],resize_keyboard=True)
+    text="Qanday yunalishda qatnaysiz"
+    query.edit_message_text(text=text,reply_markup=keyboard)
+
+def chiqarish(update:Update,context:CallbackContext):
+    query=update.callback_query
+    b=[]
+    b.append(query.data.split(",")[1])
+    b.append(query.data.split(",")[2])
+    m=0
+    lst=db.manzil(b)      
+    chat_id=query.message.chat.id
+    bot = context.bot
+    try:
+        ism=lst[m]['ism']
+        phone=lst[m]['phone']
+        havola=lst[m]['havola']
+        qayer=lst[m]["qayer"]
+        rasm=lst[m]['rasm']
+        k=[]
+        back=InlineKeyboardButton(text="⏪",callback_data=f"oldin,{m}")
+        nextn=InlineKeyboardButton(text="⏩",callback_data=f"keyin,{m}")
+        max=len(lst)
+        if m>0 and m<max-1:
+            k.append([back,nextn])
+        elif m==max-1 and max!=1:
+            k.append([back])
+        elif m==0 and max!=1:
+            k.append([nextn])
+        ortga2=InlineKeyboardButton(text="Ortga",callback_data=f"ortga2")
+        lichka=InlineKeyboardButton(text="Bog'lansh",url=havola)
+        k.append([lichka])
+        k.append([ortga2])
+        keyboard=InlineKeyboardMarkup(k,resize_keyboard=True)
+        text=f'Ismi {ism}\nTelfon raqami:  {phone}\nManzili:  {qayer[0]} {qayer[1]}'
+        query.delete_message()
+        bot.sendPhoto(chat_id=chat_id,photo=rasm,caption=text,reply_markup=keyboard)
+    except:
+        query.answer("Bu yunalishga hechkim e'lon bermagan")
+
+def oldin(update:Update,context:CallbackContext):
+    query=update.callback_query
+    b=[]
+    b.append(query.data.split(",")[1])
+    b.append(query.data.split(",")[2])
+    m=int(query.data.split(",")[1])
+    m=m-1
+    lst=db.manzil(b)        
+    chat_id=query.message.chat.id
+    bot = context.bot
+    try:
+        ism=lst[m]['ism']
+        phone=lst[m]['phone']
+        havola=lst[m]['havola']
+        qayer=lst[m]["qayer"]
+        rasm=lst[m]['rasm']
+        k=[]
+        back=InlineKeyboardButton(text="⏪",callback_data=f"oldin,{m}")
+        nextn=InlineKeyboardButton(text="⏩",callback_data=f"keyin,{m}")
+        max=len(lst)
+        if m>0 and m<max-1:
+            k.append([back,nextn])
+        elif m==max-1 and max!=1:
+            k.append([back])
+        elif m==0 and max!=1:
+            k.append([nextn])
+        ortga2=InlineKeyboardButton(text="Ortga",callback_data=f"ortga2")
+        lichka=InlineKeyboardButton(text="Bog'lansh",url=havola)
+        k.append([lichka])
+        k.append([ortga2])
+        keyboard=InlineKeyboardMarkup(k,resize_keyboard=True)
+        text=f'Ismi {ism}\nTelfon raqami:  {phone}\nManzili:  {qayer}'
+        query.delete_message()
+        bot.sendPhoto(chat_id=chat_id,photo=rasm,caption=text,reply_markup=keyboard)
+    except:
+        query.answer("Bu yunalishga hechkim e'lon bermagan")
+
+def keyin(update:Update,context:CallbackContext):
+    query=update.callback_query
+    b=[]
+    b.append(query.data.split(",")[1])
+    b.append(query.data.split(",")[2])
+    m=int(query.data.split(",")[1])
+    try:
+        m=m+1
+        lst=db.manzil(b)      
+        chat_id=query.message.chat.id
+        bot = context.bot
+        ism=lst[m]['ism']
+        phone=lst[m]['phone']
+        havola=lst[m]['havola']
+        qayer=lst[m]["qayer"]
+        rasm=lst[m]['rasm']
+        k=[]
+        back=InlineKeyboardButton(text="⏪",callback_data=f"oldin,{m}")
+        nextn=InlineKeyboardButton(text="⏩",callback_data=f"keyin,{m}")
+        max=len(lst)
+        if m>0 and m<max-1:
+            k.append([back,nextn])
+        elif m==max-1:
+            k.append([back])
+        elif m==0:
+            k.append([nextn])
+        ortga2=InlineKeyboardButton(text="Ortga",callback_data=f"ortga2")
+        lichka=InlineKeyboardButton(text="Bog'lansh",url=havola)
+        k.append([lichka])
+        k.append([ortga2])
+        keyboard=InlineKeyboardMarkup(k,resize_keyboard=True)
+        text=f'Ismi {ism}\nTelfon raqami:  {phone}\nManzili:  {qayer}'
+        query.delete_message()
+        bot.sendPhoto(chat_id=chat_id,photo=rasm,caption=text,reply_markup=keyboard)
+    except:
+        query.answer("Bu yunalishga hechkim e'lon bermagan")
+
+def ortgayul(update:Update,context:CallbackContext):
+    query=update.callback_query
+    bot=context.bot
+    chat_id=query.message.chat.id
+    text="Siz Yulovchi bo'limidasiz. Bu yerda siz yangi e'lon qo'shishingiz, e'loningizni taxrirlashingiz va e'loningizni o'chirishingiz mumkun."
+    elonk=InlineKeyboardButton(text="E'lonlarni ko'rish",callback_data="elonkorish")
+    manzil=InlineKeyboardButton(text="Manzilni tanlash",callback_data="tanlash")
+    ortga=InlineKeyboardButton(text="Ortga",callback_data="ortga2")
+    keyboard=InlineKeyboardMarkup([[elonk,manzil],[ortga]
+    ],resize_keyboard=True)
+    query.delete_message()
+    bot.sendMessage(chat_id=chat_id,text=text,reply_markup=keyboard)
+
+def ortgayul1(update:Update,context:CallbackContext):
+    query=update.callback_query
+    text="Siz Yulovchi bo'limidasiz. Bu yerda siz yangi e'lon qo'shishingiz, e'loningizni taxrirlashingiz va e'loningizni o'chirishingiz mumkun."
+    elonk=InlineKeyboardButton(text="E'lonlarni ko'rish",callback_data="elonkorish")
+    manzil=InlineKeyboardButton(text="Manzilni tanlash",callback_data="tanlash")
+    ortga=InlineKeyboardButton(text="Ortga",callback_data="ortga2")
+    keyboard=InlineKeyboardMarkup([[elonk,manzil],[ortga]
+    ],resize_keyboard=True)
+    query.edit_message_text(text=text,reply_markup=keyboard)
+
+def boshqa(update:Update,context:CallbackContext):
+    query=update.callback_query
+    query.answer("Boshqa yunalishlar hali kiritilmagan!!!")
+
 dp.add_handler(CommandHandler("start",start))
 dp.add_handler(CallbackQueryHandler(taxi,pattern="taksi"))
+dp.add_handler(CallbackQueryHandler(ortga2,pattern="ortga2"))
 dp.add_handler(CallbackQueryHandler(elonqosh,pattern="elonqoshish"))
-dp.add_handler(MessageHandler(Filters.text,contact))
-dp.add_handler(MessageHandler(Filters.contact,addism))
-dp.add_handler(CallbackQueryHandler(qoshish,pattern="Oltinsoy"))
+dp.add_handler(CallbackQueryHandler(elonoch,pattern="elonochirish"))
+dp.add_handler(MessageHandler(Filters.photo,addism))
+dp.add_handler(MessageHandler(Filters.contact,rasm))
+dp.add_handler(CallbackQueryHandler(qoshish,pattern="qush,"))
+dp.add_handler(CallbackQueryHandler(yulovchi,pattern="yulovchi"))
+dp.add_handler(CallbackQueryHandler(elonkor,pattern="elonkorish"))
+dp.add_handler(CallbackQueryHandler(back,pattern="back"))
+dp.add_handler(CallbackQueryHandler(next,pattern="nextn"))
+dp.add_handler(CallbackQueryHandler(chiqarish,pattern="qwe,"))
+dp.add_handler(CallbackQueryHandler(oldin,pattern="oldin"))
+dp.add_handler(CallbackQueryHandler(keyin,pattern="keyin"))
+dp.add_handler(CallbackQueryHandler(tanlash,pattern="tanlash"))
+dp.add_handler(CallbackQueryHandler(ortgayul,pattern="ortgayul"))
+dp.add_handler(CallbackQueryHandler(ortgayul1,pattern="ortgayol"))
+dp.add_handler(CallbackQueryHandler(boshqa,pattern="boshqa1"))
 updater.start_polling()
 updater.idle()
