@@ -3,7 +3,7 @@ from tinydb.database import Document
 
 class DB:
     def __init__(self,path):
-        self.db = TinyDB(path,indent=4)
+        self.db = TinyDB(path)
         self.table = self.db.table('taxi')
         
     def save(self,chat_id,ism,phone,havola,qayer,rasm):
