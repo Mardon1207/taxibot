@@ -2,7 +2,7 @@ import telegram
 
 import os 
 from settings import TOKEN
-url = "https://mardon.pythonanywhere.com/taxi/"
+url = "https://mardon.pythonanywhere.com/taxibot/"
 
 
 bot = telegram.Bot(TOKEN)
