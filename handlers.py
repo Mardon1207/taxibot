@@ -10,11 +10,11 @@ from telegram.ext import (
     CallbackContext
     )
 from db import DB
-db = DB("/home/Mardon/taxi/data.json")
+db = DB("/home/Mardon/taxibot/data.json")
 from rasm import DB
-rasmdb =DB("/home/Mardon/taxi/rasm.json")
+rasmdb =DB("/home/Mardon/taxibot/rasm.json")
 from contact import DB
-contactdb =DB("/home/Mardon/taxi/rasm.json")
+contactdb =DB("/home/Mardon/taxibot/rasm.json")
 
 def start(update:Update,context:CallbackContext):
     chat_id=update.message.chat.id
