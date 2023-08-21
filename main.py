@@ -39,7 +39,7 @@ from settings import TOKEN
 
 app = Flask(__name__)
 
-@app.route("/setwebhook/", methods=["GET", "POST"])
+@app.route("/taxibot/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
     
