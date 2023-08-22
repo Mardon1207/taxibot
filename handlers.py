@@ -18,6 +18,7 @@ contactdb =DB("/home/Mardon/taxibot/rasm.json")
 
 def start(update:Update,context:CallbackContext):
     chat_id=update.message.chat.id
+    print(chat_id)
     bot=context.bot
     taxi=InlineKeyboardButton(text="🚖 Taxi",callback_data="taksi")
     yulovchi=InlineKeyboardButton(text="👤 Yulovchi",callback_data="yulovchi")
