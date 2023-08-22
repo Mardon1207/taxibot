@@ -73,7 +73,7 @@ def index():
         dp.add_handler(CallbackQueryHandler(haqida,pattern="bothaqida"))
         dp.add_handler(CallbackQueryHandler(ortgaqayt,pattern="ortgaqayt"))
 
-        dp.process_update(update, bot)
+        dp.process_update(update)
         print("OK")
         return "ok"
     
